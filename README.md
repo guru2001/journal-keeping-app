@@ -4,6 +4,7 @@ A Streamlit-based journaling application with an AI chat interface that allows u
 
 ![App Screenshot](images/image1.png)
 ![App Screenshot](images/image2.png)
+
 ## Features
 
 ### Adding Journal Entries
@@ -19,6 +20,50 @@ Users can query their journal with questions like:
 - "What did I note about Alice?"
 - "Show me all my reminders"
 
+## How It Works
+
+### Overview
+The app uses a LangChain agent with OpenAI function calling to intelligently route user messages to the appropriate journal operations. The agent understands user intent and either adds entries to the journal or queries existing entries using semantic search.
+
+### Step-by-Step Flow
+
+1. **User Input**: User sends a message through the Streamlit chat interface
+
+2. **Agent Processing**: The LangChain agent (powered by GPT-4o-mini) processes the message:
+   - Analyzes the user's intent
+   - Determines if it's a journal-related query
+   - Selects the appropriate tool to use
+
+3. **Function Calling**: The agent calls one of two tools:
+   - **`add_journal_entry`**: When user wants to record something
+     - LLM extracts category (shopping, reminder, quote, note, general)
+     - LLM extracts shopping items if applicable
+     - Entry is stored with embedding for semantic search
+   - **`query_journal`**: When user asks about existing entries
+     - Agent determines category filter based on intent (shopping, reminder, or none)
+     - Performs hybrid search (vector + keyword) on filtered entries
+     - Returns formatted results
+
+4. **Semantic Search**: For queries, the system:
+   - Generates embeddings for the query using OpenAI's text-embedding-3-small
+   - Compares against stored entry embeddings using cosine similarity (70% weight)
+   - Performs keyword matching on content and categories (30% weight)
+   - Returns top-k most relevant entries
+
+5. **Response Generation**: The agent formats the results and returns a natural language response to the user
+
+### Key Components
+
+**LangChain Agent**: Orchestrates the conversation flow and tool selection using OpenAI's function calling API.
+
+**Journal Manager**: Handles entry storage, embedding generation, and hybrid search operations.
+
+**Vector Search**: Each journal entry is automatically embedded when added, enabling semantic understanding of queries beyond exact keyword matches.
+
+**Category Filtering**: The agent intelligently filters queries by category (shopping, reminder, or all) to improve relevance and response quality.
+
+**Chat History Management**: Implements a sliding window - maintains full history in UI but only sends the most recent 10 message pairs to the model to stay within prompt limits.
+
 ## Implementation
 
 ### Technology Stack
@@ -28,22 +73,16 @@ Users can query their journal with questions like:
 - **Embeddings**: OpenAI text-embedding-3-small for semantic search
 - **Storage**: In-memory (Streamlit session state)
 
-### Key Features
+### Architecture
+- **`app.py`**: Main Streamlit application with chat interface and LangChain agent
+- **`journal_manager.py`**: Journal entry management with vector search capabilities
 
-**Function Calling**: Uses OpenAI's function calling to add entries (`add_journal_entry`) and query entries (`query_journal`).
+## Notes
 
-**Hybrid Search**: Combines vector search (70%) with keyword matching (30%) for optimal query results. Each entry is automatically embedded for semantic search.
-
-**Query Categorization**: The `query_journal` function intelligently filters by category based on user intent:
-- Shopping queries → `category_filter="shopping"` (returns aggregated shopping items)
-- Reminder queries → `category_filter="reminder"` (returns all reminders)
-- General queries → no filter (searches across all entries)
-
-**Shopping List Extraction**: Automatically extracts and aggregates shopping items from entries. Handles incremental additions (e.g., "also add meat" only adds "meat").
-
-**Hallucination Safeguards**: System prompt limits the assistant to journal-related queries only. Declines non-journal queries (e.g., "What is 2+2?") with appropriate responses.
-
-**Chat History Management**: Implements sliding window approach - keeps the most recent 10 message pairs to fit within prompt limits while maintaining full history in the UI.
+- Uses GPT-4o-mini by default for cost efficiency (can be changed to GPT-4 in `app.py`)
+- Journal entries are categorized automatically (shopping, reminder, quote, note, general)
+- Chat history and entries stored in Streamlit session state (lost on page refresh)
+- Chat history truncated to most recent 10 message pairs to fit within prompt limits
 
 ## Setup
 
@@ -62,23 +101,3 @@ Users can query their journal with questions like:
    ```bash
    streamlit run app.py
    ```
-
-## Architecture
-
-- **`app.py`**: Main Streamlit application with chat interface and LangChain agent
-- **`journal_manager.py`**: Journal entry management with vector search capabilities
-
-### How It Works
-
-1. User sends a message through the chat interface
-2. LangChain agent processes the message using function calling
-3. Agent determines whether to add an entry, query entries, or decline non-journal queries
-4. For queries, agent determines appropriate category filter and uses hybrid search
-5. Returns formatted response to the user
-
-## Notes
-
-- Uses GPT-4o-mini by default for cost efficiency (can be changed to GPT-4 in `app.py`)
-- Journal entries are categorized automatically (shopping, reminder, quote, note, general)
-- Chat history and entries stored in Streamlit session state (lost on page refresh)
-- Chat history truncated to most recent 10 message pairs to fit within prompt limits
