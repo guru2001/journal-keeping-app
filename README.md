@@ -3,7 +3,7 @@
 A Streamlit-based journaling application with an AI chat interface that allows users to add journal entries and query them using natural language.
 
 ![App Screenshot](images/image1.png)
-
+![App Screenshot](images/image2.png)
 ## Features
 
 ### Adding Journal Entries
@@ -11,8 +11,6 @@ Users can add entries through natural language prompts:
 - "Remind me to buy eggs next time I'm at the supermarket"
 - "Alice says 'I should check out Kritunga for their awesome biryani'"
 - "Note: Meeting with John tomorrow at 3 PM"
-
-![Adding Entries](images/image2.png)
 
 ### Querying Journal Entries
 Users can query their journal with questions like:
