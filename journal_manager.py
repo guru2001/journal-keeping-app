@@ -3,7 +3,6 @@ Journal Manager - Handles journal entries storage and querying with vector searc
 """
 from typing import List, Dict, Any, Optional
 from datetime import datetime
-import re
 import numpy as np
 from openai import OpenAI
 import os
@@ -117,31 +116,10 @@ class JournalManager:
         all_items = set()
         
         for entry in self.entries:
-            # Primary source: LLM-extracted items (most reliable)
             if entry.get("extracted_items"):
                 for item in entry["extracted_items"]:
                     if item and item.strip():
                         all_items.add(item.strip())
-            
-            # Fallback: Only for entries categorized as shopping but missing extracted_items
-            # This is a safety net, but LLM should handle extraction
-            if entry["category"] == "shopping" and not entry.get("extracted_items"):
-                # Simple fallback extraction for edge cases
-                content_lower = entry["content"].lower()
-                if "buy" in content_lower or "purchase" in content_lower:
-                    # Try basic extraction as last resort
-                    patterns = [
-                        r"remind.*?to\s+buy\s+([^,.!?]+)",
-                        r"buy\s+([^,.!?]+)",
-                    ]
-                    for pattern in patterns:
-                        matches = re.findall(pattern, content_lower)
-                        for match in matches:
-                            item = match.strip()
-                            item = re.sub(r"^(me|to|the|a|an|some|next time|at the)\s+", "", item)
-                            item = re.sub(r"\s+(next time|at the|supermarket|store).*$", "", item)
-                            if item and len(item) > 2:
-                                all_items.add(item.title())
         
         return sorted(list(all_items))
     
