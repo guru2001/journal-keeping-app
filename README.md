@@ -2,9 +2,6 @@
 
 A Streamlit-based journaling application with an AI chat interface that allows users to add journal entries and query them using natural language.
 
-![App Screenshot](images/image1.png)
-![App Screenshot](images/image2.png)
-
 ## Features
 
 ### Adding Journal Entries
@@ -83,6 +80,10 @@ The app uses a LangChain agent with OpenAI function calling to intelligently rou
 - Journal entries are categorized automatically (shopping, reminder, quote, note, general)
 - Chat history and entries stored in Streamlit session state (lost on page refresh)
 - Chat history truncated to most recent 10 message pairs to fit within prompt limits
+
+
+![App Screenshot](images/image1.png)
+![App Screenshot](images/image2.png)
 
 ## Setup
 
